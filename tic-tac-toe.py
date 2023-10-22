@@ -297,11 +297,10 @@ class MinimaxAgent(Agent):
 
         # Place at a random highest value position
         position_values = self.position_values(board, self.player)
-        log(self.player, f"Position values: {position_values}")
         highest_value = max(position_values.values())
         highest_value_positions = list({k: v for k, v in position_values.items() if v == highest_value}.keys())
         random_highest_value_position = random.choice(highest_value_positions)
-        log(self.player, f"I'm going to place at a random highest value position: {random_highest_value_position}, which has a vlue of {highest_value}")
+        log(self.player, f"I'm going to place at a random highest value position: {random_highest_value_position}")
         return Move(random_highest_value_position, self.player)
     
     def position_values(self, board:Board, imagined_player: int) -> dict:
@@ -313,14 +312,16 @@ class MinimaxAgent(Agent):
             if self.check_win(imagined_board) == imagined_player:
                 # We would win
                 values[move] = 1
-                continue
-            if len(self.free_spots(imagined_board)) == 0:
+            elif len(self.free_spots(imagined_board)) == 0:
                 # We would draw
                 values[move] = 0
-                continue
-            # Opponent would get to move, and could choose the best position for them
-            values[move] = max(self.position_values(imagined_board, X if imagined_player == O else O).values()) * -1 # Their win is our loss
-
+            else:
+                # Opponent would get to move, and could choose the best position for them
+                values[move] = max(self.position_values(imagined_board, X if imagined_player == O else O).values()) * -1 # Their win is our loss
+            if values[move] == 1:
+                # Found a winning move, no need to keep searching
+                break
+            
         return values
 
     def other_player(self) -> int:
