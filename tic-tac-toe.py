@@ -396,14 +396,6 @@ class RegularReferee:
             log(REFEREE, "Not O's turn. Penalty O.")
             return Judgement.O_PENALTY
         
-        if x_move is None and self.whose_turn(board) == X:
-            log(REFEREE, "X's turn but didn't go. Penalty X.")
-            return Judgement.X_PENALTY
-
-        if o_move is None and self.whose_turn(board) == O:
-            log(REFEREE, "O's turn but didn't go. Penalty O.")
-            return Judgement.O_PENALTY
-
         if self.check_win(board) == X:
             log(REFEREE, "X wins!")
             return Judgement.X_WINS
@@ -415,6 +407,14 @@ class RegularReferee:
         if all(pos is not EMPTY for pos in board.iter()) and self.check_win(board) == EMPTY:
             log(REFEREE, "Draw!")
             return Judgement.DRAW
+        
+        if x_move is None and self.whose_turn(board) == X:
+            log(REFEREE, "X's turn but didn't go. Penalty X.")
+            return Judgement.X_PENALTY
+
+        if o_move is None and self.whose_turn(board) == O:
+            log(REFEREE, "O's turn but didn't go. Penalty O.")
+            return Judgement.O_PENALTY
 
     def whose_turn(self, board: Board) -> int:
         hist = self.board_histogram(board)
@@ -521,9 +521,9 @@ def main():
     judgement_counts = {}
     
     for _ in range(0, 10):    
-        agent_x = NoRulesAgent(X)
-        agent_o = NoRulesAgent(O)
-        agent_referee = NoPenaltiesReferee()
+        agent_x = OneStepAheadAgent(X)
+        agent_o = RandomAgent(O)
+        agent_referee = RegularReferee()
         sim = Simulator(agent_x, agent_o, agent_referee)
         judgement = sim.run()
         judgement_counts[judgement] = judgement_counts.get(judgement, 0) + 1
