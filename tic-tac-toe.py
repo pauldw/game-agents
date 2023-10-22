@@ -297,17 +297,18 @@ class MinimaxAgent(Agent):
 
         # Place at a random highest value position
         position_values = self.position_values(board, self.player)
+        log(self.player, f"Position values: {position_values}")
         highest_value = max(position_values.values())
         highest_value_positions = list({k: v for k, v in position_values.items() if v == highest_value}.keys())
         random_highest_value_position = random.choice(highest_value_positions)
-        log(self.player, f"I'm going to place at a random highest value position: {random_highest_value_position}")
+        log(self.player, f"I'm going to place at a random highest value position: {random_highest_value_position}, which has a vlue of {highest_value}")
         return Move(random_highest_value_position, self.player)
     
     def position_values(self, board:Board, imagined_player: int) -> dict:
         # Note this doesn't memoize or deduplicate, so it's very slow
         values = {}
-        imagined_board = board.copy()
         for move in self.free_spots(board):
+            imagined_board = board.copy()
             imagined_board.place(move, imagined_player)
             if self.check_win(imagined_board) == imagined_player:
                 # We would win
@@ -319,7 +320,6 @@ class MinimaxAgent(Agent):
                 continue
             # Opponent would get to move, and could choose the best position for them
             values[move] = max(self.position_values(imagined_board, X if imagined_player == O else O).values()) * -1 # Their win is our loss
-            imagined_board.place(move, EMPTY)
 
         return values
 
@@ -512,9 +512,10 @@ class Simulator:
                 print()
             judgement = self.step()
             if judgement is not None:
-                print()
-                self.board.pretty_print()
-                print()
+                if len(sys.argv) > 1 and sys.argv[1] == "debug":
+                    print()
+                    self.board.pretty_print()
+                    print()
                 return judgement
 
 def main():
@@ -522,7 +523,7 @@ def main():
     
     for _ in range(0, 10):    
         agent_x = OneStepAheadAgent(X)
-        agent_o = RandomAgent(O)
+        agent_o = MinimaxAgent(O)
         agent_referee = RegularReferee()
         sim = Simulator(agent_x, agent_o, agent_referee)
         judgement = sim.run()
